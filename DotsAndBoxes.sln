@@ -9,9 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotsAndBoxes.Common", "Dots
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotAndBoxes.Client.Android", "DotAndBoxes.Client\DotAndBoxes.Client.Android\DotAndBoxes.Client.Android.csproj", "{630EA5B8-11ED-4BC8-9A7A-2F051196F423}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotAndBoxes.Client", "DotAndBoxes.Client\DotAndBoxes.Client\DotAndBoxes.Client.csproj", "{694008E9-29DF-4A54-A32A-E0675A411820}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotsAndBoxes.ConsoleClient", "DotsAndBoxes.ConsoleClient\DotsAndBoxes.ConsoleClient.csproj", "{77869FF7-47AD-4C90-9BFB-B63623B88618}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotAndBoxes.Client", "DotAndBoxes.Client\DotAndBoxes.Client\DotAndBoxes.Client.csproj", "{694008E9-29DF-4A54-A32A-E0675A411820}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +35,6 @@ Global
 		{694008E9-29DF-4A54-A32A-E0675A411820}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{694008E9-29DF-4A54-A32A-E0675A411820}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{694008E9-29DF-4A54-A32A-E0675A411820}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77869FF7-47AD-4C90-9BFB-B63623B88618}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77869FF7-47AD-4C90-9BFB-B63623B88618}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77869FF7-47AD-4C90-9BFB-B63623B88618}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77869FF7-47AD-4C90-9BFB-B63623B88618}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

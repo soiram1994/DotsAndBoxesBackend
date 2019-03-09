@@ -16,7 +16,7 @@ namespace DotsAndBoxes.Core.Models
         public Board(int dimension)
         {
             int crosses;
-            if (dimension > 2)
+            if (dimension < 2)
                 throw new Exception("Not valid number");
             //Fill board with dots
             for (int i = 0; i < dimension; i++)
@@ -53,7 +53,7 @@ namespace DotsAndBoxes.Core.Models
         
 
         //Draw line logic. Checks if the dots are valid in order to draw line
-        public bool DrawLine(Dot starterDot, Dot endingDot)
+        private bool DrawLine(Dot starterDot, Dot endingDot)
         {
             //Checks dot cross availiability
             if (!(this[starterDot]==0||this[endingDot]==0))
@@ -92,6 +92,8 @@ namespace DotsAndBoxes.Core.Models
         //For each case check the existance of the necessary vertical lines 
         public Score CheckBox(Line newLine)
         {
+            if (!DrawLine(newLine.StartDot, newLine.EndDot))
+                return Score.Invalid;
             var score = Score.NoScore;
             var parallelLines = newLine.GetParallelLines();
             //Checks box's existence based on the first parallel

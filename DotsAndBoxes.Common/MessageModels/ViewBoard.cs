@@ -8,5 +8,7 @@ namespace DotsAndBoxes.Common.MessageModels
     public class ViewBoard
     {
         public List<Line> DrawnLines { get; set; }
+        public int Player1_Score { get; set; }
+        public int Player2_Score { get; set; }
     }
 }

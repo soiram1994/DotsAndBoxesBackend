@@ -3,12 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DotAndBoxes.Client"
              x:Class="DotAndBoxes.Client.MainPage">
+    <ContentPage.BindingContext>
+        <local:MainPageViewModel/>
+    </ContentPage.BindingContext>
+    <Grid>
+        <Button IsEnabled="True" Text="Join" Command="{Binding JoinGame}" HorizontalOptions="Center" VerticalOptions="Center"/>
+        <ListView ItemsSource="{Binding Dots}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Label Text="{Binding X}" Grid.Column="{Binding Y}" Grid.Row="{Binding X}"/>
 
-    <StackLayout>
-        <!-- Place new controls here -->
-        <Label Text="Welcome to Xamarin.Forms!" 
-           HorizontalOptions="Center"
-           VerticalOptions="CenterAndExpand" />
-    </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+
+    
 
 </ContentPage>

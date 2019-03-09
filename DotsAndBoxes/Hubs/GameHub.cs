@@ -1,6 +1,8 @@
 ﻿using DotsAndBoxes.Common.CommonModels;
 using DotsAndBoxes.Common.MessageModels;
 using DotsAndBoxes.Core.Entities;
+using DotsAndBoxes.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -10,67 +12,95 @@ using System.Threading.Tasks;
 
 namespace DotsAndBoxes.Hubs
 {
-    
+    [AllowAnonymous]
     public class GameHub:Hub
     {
-       // private readonly GameChecker _gameChecker;
-        private ICollection<GameSession> _gameSessions=new List<GameSession>();
-
-
-        [Route("{dimension}")]
-        public async Task NewGame([FromRoute] int dimension)
+        // private readonly GameChecker _gameChecker;
+        private ActiveGames _gameSessions;
+        public GameHub(ActiveGames gameSessions)
         {
-            var newKey = Guid.NewGuid();
-            _gameSessions.Add(new GameSession(dimension) {SessionKey = newKey });
-            await Groups.AddToGroupAsync(Context.ConnectionId, newKey.ToString());
-            await Clients.Group(newKey.ToString()).SendAsync(newKey.ToString());
-
-        }
-
-
-        [Route("{gameId}")]
-        public async Task DrawLine([FromRoute]Guid gameId,[FromBody]Line line)
-        {
-            var gameSession = _gameSessions.SingleOrDefault(g => g.SessionKey == gameId);
-            var lineDrawn =  gameSession.Board.DrawLine(line.StartDot, line.EndDot);
-            var score = gameSession.Board.CheckBox(line);
-            var status = gameSession.CheckVictoryStatus();
-            if (status == VictoryStatus.Win || status == VictoryStatus.Tie)
-                await Clients.Group(gameSession.SessionKey.ToString()).SendAsync("WinnerDecided",
-                    new GameStatus
-                    {
-                        VictoryStatus = status,
-                        WinnerName = (gameSession.Player1_Score > gameSession.Player1_Score ?
-                        gameSession.Player1.Desc : gameSession.PLayer2.Desc)
-                    });
-            else
-            {
-                if (score == Models.Score.NoScore)
-                {
-                    ViewBoard board = new ViewBoard { DrawnLines = gameSession.Board.DrawnLines };
-                    await Clients.Caller.SendAsync("DrawAndWait");
-                    await Clients.AllExcept(Context.ConnectionId).SendAsync("UpdateBoardAndPLay", board);
-                }
-                else
-                {
-                    ViewBoard board = new ViewBoard { DrawnLines = gameSession.Board.DrawnLines};
-                    await Clients.Caller.SendAsync("DrawAndPlay");
-                    await Clients.GroupExcept(gameSession.SessionKey.ToString(), Context.ConnectionId).SendAsync("UpdateBoardAndWait", board);
-                }
-            }
+            _gameSessions = gameSessions;
         }
 
         
+        public async Task NewGame(string d)
+        {
+            int dimension = Convert.ToInt32(d);
+            if (_gameSessions.Games.Any(g => g.Players.Count() == 1))
+            {
+                await JoinGame();
+            }
+            var newKey = Guid.NewGuid().ToString();
+            GameSession newGame = new GameSession(dimension)
+            {
+                
+                SessionKey = newKey
+            };
+            newGame.AddPlayer(Context.ConnectionId);
+            _gameSessions.Games.Add(newGame);
+            await Groups.AddToGroupAsync(Context.ConnectionId, newKey.ToString());
+            await Clients.Caller.SendAsync("WaitingPlayer2");
+
+        }
+
+
+        
+        public async Task DrawLine(string gameId,Line line)
+        {
+            var gameSession = _gameSessions.Games.SingleOrDefault(g => g.SessionKey == gameId);
+            var gameStatus = gameSession.PLay(line);
+            if (gameStatus.Status == Status.Win)
+            {
+                await Clients.Group(gameSession.SessionKey).SendAsync("WinnerDecided",
+                    gameStatus.WinnerName);
+            }
+            else if (gameStatus.Status == Status.Score)
+            {
+                ViewBoard board = new ViewBoard
+                {
+                    DrawnLines = gameSession.Board.DrawnLines,
+                    Player1_Score = gameSession.Players.SingleOrDefault(p=>p.Id==1).Score,
+                    Player2_Score = gameSession.Players.SingleOrDefault(p=>p.Id==2).Score
+                };
+                await Clients.Caller.SendAsync("DrawAndPlay");
+                await Clients.GroupExcept(gameSession.SessionKey.ToString(), Context.ConnectionId).SendAsync("UpdateBoardAndWait", board);
+            }
+            else if(gameStatus.Status == Status.NoScore)
+            {
+                ViewBoard board = new ViewBoard { DrawnLines = gameSession.Board.DrawnLines };
+                await Clients.Caller.SendAsync("DrawAndWait");
+                await Clients.AllExcept(Context.ConnectionId).SendAsync("UpdateBoardAndPLay", board);
+            }
+            else if(gameStatus.Status == Status.Invalid)
+            {
+                await Clients.Caller.SendAsync("InvalidMove");
+            }
+            
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            if (_gameSessions.ActiveGameExists())
+                await Clients.Caller.SendAsync("EnableJoin");
+            await base.OnConnectedAsync();
+        }
+        //If a game is already active with a player waiting 
         public async Task JoinGame()
         {
             var gameExists = false;
+            
             do
             {
-                gameExists = _gameSessions.Any(g => g.PLayer2 == null);
+                gameExists = _gameSessions.Games.Any(g => g.Players.Count() == 1);
                 await Task.Delay(3000);
             }
-            while (gameExists);
-            _gameSessions.SingleOrDefault(g => g.PLayer2 == null).PLayer2 = new Player { Id = 2, Desc = "Player2" };
+            while (!gameExists);
+            var game = _gameSessions.Games.SingleOrDefault(g => g.Players.Count() == 1);
+            var key = game.SessionKey;
+            _gameSessions.Games.SingleOrDefault(g => g.Players.Count() == 1).AddPlayer(Context.ConnectionId);
+            await Groups.AddToGroupAsync(Context.ConnectionId,key);
+            await Clients.Group(key).SendAsync("StartGame",game.Dimension);
+            
         }
     }
 }

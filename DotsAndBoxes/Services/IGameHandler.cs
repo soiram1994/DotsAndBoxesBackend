@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DotsAndBoxes.Models
+namespace DotsAndBoxes.Services
 {
-    public enum Score
+    public interface IGameHandler
     {
-        NoScore,
-        Single,
-        Double,
-        Invalid
     }
 }

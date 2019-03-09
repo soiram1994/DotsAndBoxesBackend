@@ -6,6 +6,6 @@ namespace DotAndBoxes.Client
 {
     public static class Settings
     {
-        public static readonly string ConnectionString = "http://192.168.200.45:51925/gamehub";
+        public static readonly string ConnectionString = "http://192.168.47.53/";
     }
 }

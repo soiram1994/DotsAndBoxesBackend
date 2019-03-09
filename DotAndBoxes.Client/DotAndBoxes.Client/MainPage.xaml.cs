@@ -11,11 +11,11 @@ namespace DotAndBoxes.Client
 {
     public partial class MainPage : ContentPage
     {
-        HubConnection connection;
+        
         public MainPage()
         {
             InitializeComponent();
-            connection = new HubConnection("http://192.168.200.45:51925/gamehub");
+            
             
         }
     }
