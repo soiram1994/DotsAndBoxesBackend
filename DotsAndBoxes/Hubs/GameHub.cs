@@ -1,12 +1,10 @@
 ﻿using DotsAndBoxes.Common.CommonModels;
 using DotsAndBoxes.Common.MessageModels;
 using DotsAndBoxes.Core.Entities;
-using DotsAndBoxes.Models;
+using DotsAndBoxes.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +20,7 @@ namespace DotsAndBoxes.Hubs
             _gameSessions = gameSessions;
         }
 
-        
+        // When a player creates a new 
         public async Task NewGame(string d)
         {
             int dimension = Convert.ToInt32(d);
@@ -40,36 +38,38 @@ namespace DotsAndBoxes.Hubs
             _gameSessions.Games.Add(newGame);
             await Groups.AddToGroupAsync(Context.ConnectionId, newKey.ToString());
             await Clients.Caller.SendAsync("WaitingPlayer2");
+            await Clients.Others.SendAsync("EnableJoin");
 
         }
 
 
-        
-        public async Task DrawLine(string gameId,Line line)
+        //When a player makes a move
+        public async Task DrawLine(Line line)
         {
-            var gameSession = _gameSessions.Games.SingleOrDefault(g => g.SessionKey == gameId);
+            var gameSession = _gameSessions.GetSessionByConnection(Context.ConnectionId);
             var gameStatus = gameSession.PLay(line);
             if (gameStatus.Status == Status.Win)
             {
+                string message;
+                if (string.IsNullOrEmpty(gameStatus.WinnerName))
+                    message = "Tie!";
+                else
+                    message = $"{gameStatus.WinnerName} has won!";
                 await Clients.Group(gameSession.SessionKey).SendAsync("WinnerDecided",
-                    gameStatus.WinnerName);
+                    message);
+                _gameSessions.Games.Remove(gameSession);
+                
             }
             else if (gameStatus.Status == Status.Score)
             {
-                ViewBoard board = new ViewBoard
-                {
-                    DrawnLines = gameSession.Board.DrawnLines,
-                    Player1_Score = gameSession.Players.SingleOrDefault(p=>p.Id==1).Score,
-                    Player2_Score = gameSession.Players.SingleOrDefault(p=>p.Id==2).Score
-                };
-                await Clients.Caller.SendAsync("DrawAndPlay");
-                await Clients.GroupExcept(gameSession.SessionKey.ToString(), Context.ConnectionId).SendAsync("UpdateBoardAndWait", board);
+                await Clients.Caller.SendAsync("DrawAndPlay",line);
+                await Clients.GroupExcept(gameSession.SessionKey.ToString(), Context.ConnectionId).SendAsync("DrawAndWait", line);
             }
             else if(gameStatus.Status == Status.NoScore)
             {
-                ViewBoard board = new ViewBoard { DrawnLines = gameSession.Board.DrawnLines };
-                await Clients.Caller.SendAsync("DrawAndWait");
-                await Clients.AllExcept(Context.ConnectionId).SendAsync("UpdateBoardAndPLay", board);
+                
+                await Clients.Caller.SendAsync("DrawAndWait",line);
+                await Clients.GroupExcept(gameSession.SessionKey,Context.ConnectionId).SendAsync("DrawAndPLay", line);
             }
             else if(gameStatus.Status == Status.Invalid)
             {
@@ -77,7 +77,7 @@ namespace DotsAndBoxes.Hubs
             }
             
         }
-
+        //When a player connects to the hub it checks if there are any active games that he/she can join
         public override async Task OnConnectedAsync()
         {
             if (_gameSessions.ActiveGameExists())
@@ -91,16 +91,30 @@ namespace DotsAndBoxes.Hubs
             
             do
             {
-                gameExists = _gameSessions.Games.Any(g => g.Players.Count() == 1);
-                await Task.Delay(3000);
+                gameExists = _gameSessions.ActiveGameExists();
+                
             }
             while (!gameExists);
-            var game = _gameSessions.Games.SingleOrDefault(g => g.Players.Count() == 1);
+            var game = _gameSessions.GetActiveGame();
             var key = game.SessionKey;
             _gameSessions.Games.SingleOrDefault(g => g.Players.Count() == 1).AddPlayer(Context.ConnectionId);
             await Groups.AddToGroupAsync(Context.ConnectionId,key);
+            if (!_gameSessions.ActiveGameExists())
+                await Clients.Others.SendAsync("DisableJoin");
             await Clients.Group(key).SendAsync("StartGame",game.Dimension);
+            await Clients.Caller.SendAsync("DisablePlayButton");
             
+            
+        }
+        //When a player from an active game disconnects it informs the other player
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            if (_gameSessions.ConnectionBelongsToActiveGame(Context.ConnectionId))
+            {
+                await Clients.Group(_gameSessions.GetSessionKeyByConnection(Context.ConnectionId)).SendAsync("GameAborted");
+                _gameSessions.Games.Remove(_gameSessions.GetSessionByConnection(Context.ConnectionId));
+            }
+            await  base.OnDisconnectedAsync(exception);
         }
     }
 }

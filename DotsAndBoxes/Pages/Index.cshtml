@@ -4,13 +4,28 @@
     <div class="row">&nbsp;</div>
     <div class="row">
         <div class="col-6">&nbsp;</div>
-        <div class="col-6">
+        <div class="col-6" id="startControls">
             
              Enter dimension<input type="number" id="messageInput" />
             <input type="button" id="sendButton" value="Create Game" />
             <br />
             <input type="button" id="joinButton" value="JoinGame"/>
 
+        </div>
+        <div class="container" id="gameControls" style="visibility:hidden" >
+            
+            <div class="row">
+                <div class="col-12">
+                    StartPoint Horizontal Position....<input id="startPointX" type="number"/>
+                    StartPoint Vertical Position.......<input type="number" id="startPointY" />
+                </div>
+                <div class="col-12">
+                    EndPoint Horizontal Position....<input type="number" id="endPointX" />
+                    EndPoint Vertical Position.......<input type="number" id="endPointY" />
+                </div>
+              
+             <input type="button" id="playButton" value="Play"/>
+            </div>
         </div>
     </div>
     <div class="row">

@@ -20,7 +20,7 @@ namespace DotsAndBoxes.Core.Entities
             Dimension = dimension;
             Players = new List<Player>();
             PlayerTurnId = 1;
-           
+            
         }
         public int Dimension { get; private set; }
         public string SessionKey { get; set; }
@@ -41,6 +41,7 @@ namespace DotsAndBoxes.Core.Entities
             }
             
         }
+
         public GameStatus PLay(Line line)
         {
             
@@ -48,7 +49,9 @@ namespace DotsAndBoxes.Core.Entities
             var score = Board.CheckBox(line);
             //if the line cannot be drawn returns invalid
             if (score == Score.Invalid)
+
                 return new GameStatus { Status = Status.Invalid };
+            
             else if (score == Score.NoScore)
             {
                 PlayerTurnId = Players.SingleOrDefault(p => p.Id != PlayerTurnId).Id;
@@ -92,7 +95,7 @@ namespace DotsAndBoxes.Core.Entities
                 return VictoryStatus.Tie;
             }
             
-            if (Math.Min(player1Score, player2Score) + Board.Squares - (player1Score + player2Score) < Math.Max(player1Score, player2Score) || (NumberOfMovesLeft == 0))
+            if (Math.Min(player1Score, player2Score) + Board.Squares < Math.Max(player1Score, player2Score) )
                 
             {
                 

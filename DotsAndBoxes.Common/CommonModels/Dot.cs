@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DotsAndBoxes.Common.CommonModels
 {
-    public struct Dot
+    public class Dot
     {
 
         //horizontal position
@@ -14,8 +14,18 @@ namespace DotsAndBoxes.Common.CommonModels
         //vertical position
         [JsonProperty("y")]
         public int Y { get; set; }
-        //times it can be crosses
-        public int TimesItCanBeCrossed { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var d = obj as Dot;
+            if (d == null)
+                return false;
+            if (d.X != X || d.Y != Y)
+                return false;
+            return true;
+        }
+
+
 
 
     }

@@ -9,6 +9,7 @@ namespace DotsAndBoxes.Extensions
         {
             return new Line { StartDot = line.EndDot, EndDot = line.StartDot };
         }
+        //gets parallel lines
         public static Tuple<Line,Line> GetParallelLines(this Line newLine)
         {
             

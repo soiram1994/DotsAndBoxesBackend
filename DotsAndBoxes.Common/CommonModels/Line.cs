@@ -11,6 +11,7 @@ namespace DotsAndBoxes.Common.CommonModels
         [JsonConverter(typeof(StringEnumConverter))]
         public Axis Axis { get; set; }
         private Dot _endDot;
+        [JsonProperty("enddot")]
         public Dot EndDot
         {
             get
@@ -31,8 +32,17 @@ namespace DotsAndBoxes.Common.CommonModels
             else
                 Axis = Axis.Vertical;
         }
+        public override bool Equals(object obj)
+        {
+            var l = obj as Line;
+            if (l == null)
+                return false;
+            if (!l.StartDot.Equals(StartDot) || !l.EndDot.Equals(EndDot)||Axis!=l.Axis)
+                return false;
+            return true;
+        }
 
-      
+
 
 
     }
