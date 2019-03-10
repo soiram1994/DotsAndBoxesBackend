@@ -97,7 +97,9 @@ namespace DotsAndBoxes.Hubs
             while (!gameExists);
             var game = _gameSessions.GetActiveGame();
             var key = game.SessionKey;
-            _gameSessions.Games.SingleOrDefault(g => g.Players.Count() == 1).AddPlayer(Context.ConnectionId);
+            var added = _gameSessions.Games.SingleOrDefault(g => g.Players.Count() == 1).AddPlayer(Context.ConnectionId);
+            if (!added)
+                return;
             await Groups.AddToGroupAsync(Context.ConnectionId,key);
             if (!_gameSessions.ActiveGameExists())
                 await Clients.Others.SendAsync("DisableJoin");

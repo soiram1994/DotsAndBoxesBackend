@@ -29,16 +29,19 @@ namespace DotsAndBoxes.Core.Entities
         public Board  Board { get; private set; }
         public int NumberOfMovesLeft { get; private set; }
 
-        public void AddPlayer(string ConnectionId)
+        public bool AddPlayer(string ConnectionId)
         {
             if(Players.Count() == 0)
             {
                 Players.Add(new Player { Id = 1, ConnectionId = ConnectionId, Desc = "Player1" });
+                return true;
             }
             else if(Players.Count() == 1)
             {
                 Players.Add(new Player { Id = 2, ConnectionId = ConnectionId, Desc = "Player2" });
+                return true;
             }
+            return false;
             
         }
 
